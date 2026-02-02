@@ -1,0 +1,5 @@
+{
+  "name": "Cartpanda Funnel Builder",
+  "description": "A drag-and-drop visual funnel builder with graph logic, validation, and persistence, demonstrating enterprise-grade React architecture.",
+  "requestFramePermissions": []
+}

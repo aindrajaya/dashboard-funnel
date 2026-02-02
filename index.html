@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartpanda Funnel Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.11.4/dist/style.css" />
+    <style>
+      body {
+        font-family: 'Architects Daughter', cursive;
+        background-color: #f8f9fa;
+        color: #1a1a1a;
+      }
+      /* React Flow Basic Styles shim for standalone */
+      .react-flow__container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+      .react-flow__pane { z-index: 1; }
+      .react-flow__viewport { transform-origin: 0 0; z-index: 2; pointer-events: none; }
+      .react-flow__renderer { z-index: 4; }
+      
+      /* Sketchy Edge Styles */
+      .react-flow__edge-path { stroke: #1a1a1a; stroke-width: 2; stroke-dasharray: 5, 5; fill: none; }
+      .react-flow__edge.selected .react-flow__edge-path { stroke: #3b82f6; stroke-width: 3; stroke-dasharray: none; }
+      
+      /* Custom Connection Line */
+      .react-flow__connection-path { stroke: #1a1a1a; stroke-width: 2; stroke-dasharray: 5, 5; }
+      
+      .react-flow__handle { 
+        width: 10px; 
+        height: 10px; 
+        background: #fff; 
+        border: 2px solid #1a1a1a; 
+        border-radius: 2px; 
+      }
+      
+      .react-flow__minimap { 
+        background-color: #fff; 
+        border: 2px solid #1a1a1a;
+        border-radius: 0.375rem;
+        box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+      }
+      
+      .react-flow__controls { 
+        display: flex; 
+        flex-direction: column; 
+        border: 2px solid #1a1a1a;
+        border-radius: 0.375rem;
+        box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+        background: #fff; 
+        overflow: hidden;
+      }
+      .react-flow__controls-button { 
+        width: 32px; 
+        height: 32px; 
+        border-bottom: 1px solid #1a1a1a; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .react-flow__controls-button:last-child { border-bottom: none; }
+      .react-flow__controls-button:hover { background: #f0f0f0; }
+      .react-flow__controls-button svg { fill: #1a1a1a; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/": "https://esm.sh/react@18.3.1/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+    "lucide-react": "https://esm.sh/lucide-react@0.263.1?deps=react@18.3.1",
+    "reactflow": "https://esm.sh/reactflow@11.11.4?deps=react@18.3.1,react-dom@18.3.1",
+    "reactflow/": "https://esm.sh/reactflow@11.11.4/?deps=react@18.3.1,react-dom@18.3.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
