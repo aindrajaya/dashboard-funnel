@@ -10,25 +10,33 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
   const [showActions, setShowActions] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const touchStartPos = useRef({ x: 0, y: 0 });
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   // Rules for handles
   const isTarget = data.type !== NodeType.SALES;
   const isSource = data.type !== NodeType.THANK_YOU;
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      const touch = e.touches[0];
+      touchStartPos.current = { x: touch.clientX, y: touch.clientY };
 
-    // Start long-press timer (500ms)
-    longPressTimer.current = setTimeout(() => {
-      // Trigger haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
+      console.log('Touch start on node:', data.label);
 
-      setShowActions(true);
-    }, 500);
-  }, []);
+      // Start long-press timer (500ms)
+      longPressTimer.current = setTimeout(() => {
+        console.log('Long press activated for:', data.label);
+        // Trigger haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+
+        setShowActions(true);
+      }, 500);
+    },
+    [data.label]
+  );
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     // Cancel long-press if finger moves too much
@@ -39,6 +47,7 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
     );
 
     if (moveDistance > 10 && longPressTimer.current) {
+      console.log('Touch moved too much, cancelling long press:', moveDistance);
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
@@ -47,6 +56,7 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
   const handleTouchEnd = useCallback(() => {
     // Clear timer if touch ends before long-press completes
     if (longPressTimer.current) {
+      console.log('Touch ended before long press completed');
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
@@ -67,8 +77,10 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
 
   // Auto-hide actions after 5 seconds
   useEffect(() => {
+    console.log('showActions changed to:', showActions);
     if (showActions) {
       const timer = setTimeout(() => {
+        console.log('Auto-hiding actions after 5 seconds');
         setShowActions(false);
       }, 5000);
       return () => clearTimeout(timer);
@@ -78,7 +90,12 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
   // Close actions when clicking/tapping outside
   useEffect(() => {
     if (showActions) {
-      const handleClickOutside = () => {
+      const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+        const target = e.target as Node;
+        // Don't close if clicking on the node or action buttons
+        if (nodeRef.current?.contains(target) || actionsRef.current?.contains(target)) {
+          return;
+        }
         setShowActions(false);
       };
 
@@ -99,6 +116,7 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
   return (
     <>
       <div
+        ref={nodeRef}
         role="button"
         tabIndex={0}
         aria-label={`${data.label} node`}
@@ -157,12 +175,17 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
 
         {/* Action Buttons - Show on long press */}
         {showActions && (
-          <div className="animate-in fade-in zoom-in absolute -bottom-14 left-1/2 z-50 flex -translate-x-1/2 gap-2 duration-200">
+          <div
+            ref={actionsRef}
+            className="animate-in fade-in zoom-in absolute -bottom-14 left-1/2 z-50 flex -translate-x-1/2 gap-2 duration-200"
+            onTouchStart={(e) => e.stopPropagation()}
+          >
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRename();
               }}
+              onTouchStart={(e) => e.stopPropagation()}
               className="flex items-center gap-2 rounded-lg border-2 border-gray-900 bg-blue-500 px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-blue-600 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
               aria-label="Rename node"
             >
@@ -175,6 +198,7 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
                 e.stopPropagation();
                 handleDelete();
               }}
+              onTouchStart={(e) => e.stopPropagation()}
               className="flex items-center gap-2 rounded-lg border-2 border-gray-900 bg-red-500 px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-red-600 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
               aria-label="Delete node"
             >
