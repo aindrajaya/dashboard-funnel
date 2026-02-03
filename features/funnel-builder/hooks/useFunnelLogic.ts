@@ -245,6 +245,14 @@ export const useFunnelLogic = () => {
     setEdges((eds) => eds.filter((edge) => !edge.selected));
   }, [setNodes, setEdges]);
 
+  const deleteNodeById = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    },
+    [setNodes, setEdges]
+  );
+
   const saveFunnel = useCallback(() => {
     saveToStorage(nodes, edges, nodeCounters);
     return true;
@@ -388,6 +396,7 @@ export const useFunnelLogic = () => {
     onConnect,
     addNode,
     deleteSelected,
+    deleteNodeById,
     saveFunnel,
     lastSaved,
     onExport,
