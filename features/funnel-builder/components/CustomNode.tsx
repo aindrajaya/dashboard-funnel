@@ -1,15 +1,13 @@
-import React, { memo, useState, useRef, useCallback } from 'react';
+import React, { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { FunnelNodeData, NodeType } from '../../../types';
 import { NODE_CONFIG } from '../../../constants';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Trash2, Edit3 } from 'lucide-react';
 import { showToast } from '../../../src/lib/toast';
-import NodeContextMenu from './NodeContextMenu';
 
 const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id }) => {
   const config = NODE_CONFIG[data.type];
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [showActions, setShowActions] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const touchStartPos = useRef({ x: 0, y: 0 });
 
@@ -28,8 +26,7 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
         navigator.vibrate(50);
       }
 
-      setMenuPosition({ x: touch.clientX, y: touch.clientY });
-      setShowContextMenu(true);
+      setShowActions(true);
     }, 500);
   }, []);
 
@@ -56,17 +53,48 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
   }, []);
 
   const handleDelete = useCallback(() => {
-    // This will be handled by ReactFlow's onNodesDelete
-    // We need to get the deleteElements function from ReactFlow
     showToast.success(`Delete ${data.label}`);
     // Dispatch custom event that FunnelCanvas can listen to
     window.dispatchEvent(new CustomEvent('deleteNode', { detail: { nodeId: id } }));
+    setShowActions(false);
   }, [data.label, id]);
 
   const handleRename = useCallback(() => {
     showToast.info(`Rename functionality for: ${data.label}`);
+    setShowActions(false);
     // TODO: Implement rename modal
   }, [data.label]);
+
+  // Auto-hide actions after 5 seconds
+  useEffect(() => {
+    if (showActions) {
+      const timer = setTimeout(() => {
+        setShowActions(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showActions]);
+
+  // Close actions when clicking/tapping outside
+  useEffect(() => {
+    if (showActions) {
+      const handleClickOutside = () => {
+        setShowActions(false);
+      };
+
+      // Use a small delay to avoid immediate close from the same touch
+      const timer = setTimeout(() => {
+        document.addEventListener('touchstart', handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('touchstart', handleClickOutside);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showActions]);
 
   return (
     <>
@@ -74,7 +102,7 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
         role="button"
         tabIndex={0}
         aria-label={`${data.label} node`}
-        className={`relative min-w-[140px] rounded-lg border-2 bg-white transition-transform duration-200 ${config.color} ${selected ? 'ring-2 ring-blue-400' : ''} ${data.isInvalid ? 'ring-2 ring-red-500' : ''} shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`}
+        className={`relative min-w-[140px] rounded-lg border-2 bg-white transition-transform duration-200 ${config.color} ${selected ? 'ring-2 ring-blue-400' : ''} ${data.isInvalid ? 'ring-2 ring-red-500' : ''} ${showActions ? 'scale-105 ring-4 ring-blue-500' : ''} shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -126,20 +154,36 @@ const CustomNode: React.FC<NodeProps<FunnelNodeData>> = ({ data, selected, id })
             className="!h-3 !w-3 !rounded-sm !border-2 !border-gray-900 !bg-white transition-colors hover:!bg-blue-400"
           />
         )}
-      </div>
 
-      {/* Context Menu */}
-      {showContextMenu && (
-        <NodeContextMenu
-          x={menuPosition.x}
-          y={menuPosition.y}
-          nodeId={id}
-          nodeLabel={data.label}
-          onDelete={handleDelete}
-          onRename={handleRename}
-          onClose={() => setShowContextMenu(false)}
-        />
-      )}
+        {/* Action Buttons - Show on long press */}
+        {showActions && (
+          <div className="animate-in fade-in zoom-in absolute -bottom-14 left-1/2 z-50 flex -translate-x-1/2 gap-2 duration-200">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRename();
+              }}
+              className="flex items-center gap-2 rounded-lg border-2 border-gray-900 bg-blue-500 px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-blue-600 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+              aria-label="Rename node"
+            >
+              <Edit3 className="h-5 w-5 text-white" />
+              <span className="font-sans text-sm font-bold text-white">Rename</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }}
+              className="flex items-center gap-2 rounded-lg border-2 border-gray-900 bg-red-500 px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-red-600 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+              aria-label="Delete node"
+            >
+              <Trash2 className="h-5 w-5 text-white" />
+              <span className="font-sans text-sm font-bold text-white">Delete</span>
+            </button>
+          </div>
+        )}
+      </div>
     </>
   );
 };
