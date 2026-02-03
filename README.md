@@ -575,6 +575,181 @@ const nodeCount = nodes.length;
 - **Reduced Motion**: Respect prefers-reduced-motion
 - **Voice Control**: Voice command support for hands-free operation
 
+## 🏛️ Architectural Decisions (Part 2: Dashboard Architecture)
+
+This section addresses how this funnel builder would scale into a full Cartpanda dashboard, answering key architectural questions about scalability, performance, and team workflows.
+
+### 1. Scalable Architecture
+
+**Feature-Based Organization:**
+
+- Code is organized by **business domain** (features/) rather than file type, preventing "spaghetti code"
+- Each feature owns its components, hooks, services, and state (e.g., `features/funnel-builder/`)
+- Shared UI components live in `components/ui/` following **Atomic Design** principles
+- **Container/Presentational Pattern**: Smart containers handle logic; presentational components focus on UI
+
+**Code Splitting:**
+
+- Route-based code splitting with `React.lazy` and `Suspense`
+- Users visiting "Orders" don't download heavy "Funnel Editor" JavaScript
+- Prefetching strategies for instant-feeling transitions (preload on hover)
+
+**Strict Boundaries:**
+
+- Clear separation between features prevents cross-contamination
+- Each feature can be developed, tested, and deployed independently
+- **Why:** Makes codebase maintainable as team and features grow
+
+### 2. Design System Implementation
+
+**Component Library Strategy:**
+
+- Built custom components with Tailwind CSS for full control
+- **Storybook** serves as living documentation (run `npm run storybook`)
+- Components developed in isolation with visual testing
+
+**Consistency Enforcement:**
+
+- **Design Tokens**: Single source of truth for colors, typography, spacing
+- Tailwind config defines theme values preventing arbitrary CSS
+- Custom toast system replaces browser alerts for consistent UX
+- **Accessibility**: Integrated `axe-core` checks, WCAG 2.1 AA compliance
+
+**Visual Regression Testing:**
+
+- Storybook stories serve as visual test cases
+- Future: Chromatic integration for automated visual regression detection
+
+### 3. Data Fetching & State Management
+
+**Server vs. Client State Separation:**
+
+- **Server State**: Ready for React Query/SWR integration for API data
+  - Handles caching, background updates, stale-while-revalidate
+  - `QueryProvider` already integrated for future API endpoints
+- **Client State**:
+  - Custom hooks (`useFunnelLogic`) for business logic
+  - localStorage for persistence across sessions
+  - React Context avoided for performance (no unnecessary re-renders)
+
+**Error Handling:**
+
+- **Error Boundaries**: Catch component crashes locally (implemented in App.tsx)
+- If validation panel crashes, canvas continues working
+- Toast notifications for user-facing errors (non-blocking)
+
+**URL as State:**
+
+- Future: Filters, sorting, pagination synced with URL query params
+- Shareable views and deep linking
+- State persists across page reloads
+
+### 4. Performance Strategy
+
+**Current Optimizations:**
+
+- **React.memo**: CustomNode prevents unnecessary re-renders
+- **useCallback**: Event handlers memoized to prevent child re-renders
+- **Functional Updates**: Prevents stale closure issues
+- **React Flow Virtualization**: Only renders visible nodes
+
+**Bundle Optimization:**
+
+- **Tailwind Purging**: Removes unused CSS (configured in tailwind.config.js)
+- **Code Splitting**: Vite automatically splits vendor chunks
+- **Tree Shaking**: Dead code elimination in production builds
+
+**Monitoring:**
+
+- **Performance Budgets**: CI fails if bundle exceeds thresholds
+- Ready for Core Web Vitals monitoring (LCP, FID/INP, CLS)
+- React DevTools Profiler used to identify actual bottlenecks
+
+**Planned:**
+
+- Windowing/Virtualization for large datasets (1000+ nodes)
+- Web Workers for heavy validation calculations
+- Service Workers for offline support and caching
+
+### 5. Developer Experience & Scalability
+
+**Quality Automation:**
+
+- **ESLint + Prettier**: Enforced via Husky pre-commit hooks
+- **TypeScript Strict Mode**: Catches errors at compile time
+- **lint-staged**: Only formats changed files for speed
+
+**Onboarding:**
+
+- **Feature Templates**: Consistent folder structure for new features
+- **Storybook**: Component API documentation auto-generated
+- **CONTRIBUTING.md** and **ARCHITECTURE.md** for new developers
+- **Type Safety**: IntelliSense prevents API misuse
+
+**CI/CD Pipeline:**
+
+- GitHub Actions workflow (`.github/workflows/ci.yml`)
+- Runs on every push: lint → type-check → test → build
+- Preview deployments on pull requests (Vercel)
+- Blocks merge if quality checks fail
+
+### 6. Testing Strategy
+
+**Three Testing Layers:**
+
+1. **Unit Tests** (Vitest + React Testing Library)
+   - Individual components and hooks tested in isolation
+   - Focus on behavior (user interactions) not implementation
+   - Example: `Button.test.tsx`, `useFunnelLogic.test.ts`
+   - **Requirement**: All shared utilities must have unit tests
+
+2. **Integration Tests**
+   - Features working together (form → validation → toast)
+   - Mock API responses with MSW (future)
+   - Example: Complete funnel creation flow
+
+3. **E2E Tests** (Playwright - future)
+   - Critical user journeys in real browser
+   - "User creates funnel, adds nodes, exports JSON"
+   - **Requirement**: Critical paths (save, export) must have E2E coverage
+
+**Coverage Goals:**
+
+- 80% coverage for business logic hooks
+- 100% coverage for shared utilities
+- Visual regression tests via Storybook
+
+### 7. Release & Quality Assurance
+
+**Safe Deployment Strategy:**
+
+- **Feature Flags**: Ready for LaunchDarkly/similar integration
+  - Deploy code to production while keeping features hidden
+  - Gradual rollouts (5% → 25% → 100% of users)
+  - Instant rollback without redeployment
+
+**Error Monitoring:**
+
+- Ready for Sentry integration
+- Track runtime errors, user sessions, performance metrics
+- Alert team before users report issues
+
+**Continuous Deployment:**
+
+- Every merge to `main` deploys to production automatically
+- Preview URLs for every pull request
+- Rollback via Git revert if issues detected
+
+**Quality Gates:**
+
+- All tests pass ✓
+- No ESLint errors ✓
+- TypeScript compiles ✓
+- Build succeeds ✓
+- Coverage thresholds met ✓
+
+---
+
 ## 🤝 Contributing
 
 This project follows modern React development practices:
@@ -583,6 +758,8 @@ This project follows modern React development practices:
 2. **Accessibility**: New features must maintain WCAG 2.1 AA compliance
 3. **Testing**: Unit tests for business logic and integration tests for user flows
 4. **Performance**: Consider rendering optimization for new features
+5. **Code Quality**: Pre-commit hooks enforce linting and formatting
+6. **Documentation**: Update Storybook stories for UI changes
 
 ## 📚 Documentation
 
