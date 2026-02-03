@@ -18,5 +18,14 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["node_modules", "dist", "vitest.config.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "vitest.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/test/**"
+  ]
 }
