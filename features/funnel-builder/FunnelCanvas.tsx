@@ -81,6 +81,7 @@ const FunnelCanvasContent: React.FC = () => {
     onConnect,
     addNode,
     deleteSelected,
+    deleteNodeById,
     saveFunnel,
     onExport,
     onImport,
@@ -181,6 +182,20 @@ const FunnelCanvasContent: React.FC = () => {
     },
     [addNode, project]
   );
+
+  // Listen for delete node events from CustomNode context menu
+  useEffect(() => {
+    const handleDeleteNode = (event: Event) => {
+      const customEvent = event as CustomEvent<{ nodeId: string }>;
+      const nodeId = customEvent.detail?.nodeId;
+      if (typeof nodeId === 'string') {
+        deleteNodeById(nodeId);
+      }
+    };
+
+    window.addEventListener('deleteNode', handleDeleteNode);
+    return () => window.removeEventListener('deleteNode', handleDeleteNode);
+  }, [deleteNodeById]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
