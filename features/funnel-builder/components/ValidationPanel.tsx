@@ -37,6 +37,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({ issues, onExpa
 
   return (
     <div className="absolute bottom-4 left-4 right-4 z-50 w-auto font-['Architects_Daughter'] md:right-auto md:w-full md:max-w-sm">
+      {/* Funnel Health Panel */}
       <div className="overflow-hidden rounded-lg border-2 border-gray-900 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <div className="flex items-center justify-between border-b-2 border-gray-900 bg-gray-50 px-4 py-2">
           <span className="text-sm font-bold text-gray-900">Funnel Health</span>

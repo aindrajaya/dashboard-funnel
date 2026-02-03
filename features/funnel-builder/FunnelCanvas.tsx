@@ -39,7 +39,7 @@ const nodeTypes: NodeTypes = {
 const FunnelCanvasContent: React.FC = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { project } = useReactFlow();
+  const { project, zoomIn, zoomOut, fitView } = useReactFlow();
   const [justSaved, setJustSaved] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showToolbar, setShowToolbar] = useState(true);
@@ -316,16 +316,36 @@ const FunnelCanvasContent: React.FC = () => {
       {/* 3. Floating Toolbar (Left Side) - Palette */}
       <Sidebar isVisible={showSidebar} onAddNode={handleMobileAddNode} isMobile={isMobile} />
 
-      {/* Mobile: Floating buttons for Minimap, Undo, Redo */}
-      {isMobile && (
+      {/* Mobile: Small Controls Toggle Button - Bottom Right, hides when controls shown */}
+      {isMobile && !showControls && (
+        <button
+          onClick={() => setShowControls(true)}
+          className="absolute right-4 z-50 rounded-full border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:bg-gray-100"
+          style={{ bottom: isHealthExpanded ? 'calc(1rem + 140px)' : 'calc(1rem + 70px)' }}
+          title="Show Controls"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* Mobile: Floating buttons for Zoom, Minimap, Undo, Redo - Right Side Vertical */}
+      {isMobile && showControls && (
         <div
           className="absolute right-4 z-50 flex flex-col gap-2 transition-all duration-300"
-          style={{ bottom: isHealthExpanded ? 'calc(4rem + 180px)' : 'calc(4rem + 60px)' }}
+          style={{ bottom: isHealthExpanded ? 'calc(1rem + 140px)' : 'calc(1rem + 70px)' }}
         >
+          {/* Zoom In */}
           <button
-            onClick={() => setShowControls(!showControls)}
-            className={`rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100 ${showControls ? 'bg-blue-100' : ''}`}
-            title="Toggle Zoom Controls"
+            onClick={() => zoomIn()}
+            className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100"
+            title="Zoom In"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -336,6 +356,32 @@ const FunnelCanvasContent: React.FC = () => {
               />
             </svg>
           </button>
+          {/* Zoom Out */}
+          <button
+            onClick={() => zoomOut()}
+            className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100"
+            title="Zoom Out"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+          {/* Fit View */}
+          <button
+            onClick={() => fitView()}
+            className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100"
+            title="Fit View"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+          </button>
+          {/* Minimap Toggle */}
           <button
             onClick={() => setShowMinimap(!showMinimap)}
             className={`rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100 ${showMinimap ? 'bg-blue-100' : ''}`}
@@ -350,6 +396,7 @@ const FunnelCanvasContent: React.FC = () => {
               />
             </svg>
           </button>
+          {/* Undo */}
           <button
             onClick={undo}
             disabled={!canUndo}
@@ -358,6 +405,7 @@ const FunnelCanvasContent: React.FC = () => {
           >
             <Undo className="h-5 w-5" />
           </button>
+          {/* Redo */}
           <button
             onClick={redo}
             disabled={!canRedo}
@@ -365,6 +413,14 @@ const FunnelCanvasContent: React.FC = () => {
             title="Redo"
           >
             <Redo className="h-5 w-5" />
+          </button>
+          {/* Close Button */}
+          <button
+            onClick={() => setShowControls(false)}
+            className="rounded-lg border-2 border-gray-900 bg-red-600 p-2 text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-red-700"
+            title="Hide Controls"
+          >
+            <X className="h-5 w-5" />
           </button>
         </div>
       )}
@@ -403,26 +459,14 @@ const FunnelCanvasContent: React.FC = () => {
         >
           <Background color="#ccc" gap={20} variant={BackgroundVariant.Dots} size={2} />
 
-          {showControls && (
-            <Controls
-              position="top-right"
-              showInteractive={false}
-              className={
-                isMobile
-                  ? `!right-4 !top-auto !m-0 transition-all duration-300 ${isHealthExpanded ? '!bottom-[calc(4rem+370px)]' : '!bottom-[calc(4rem+250px)]'}`
-                  : '!m-4'
-              }
-            >
-              {!isMobile && (
-                <>
-                  <ControlButton onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)">
-                    <Undo className="h-4 w-4" />
-                  </ControlButton>
-                  <ControlButton onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)">
-                    <Redo className="h-4 w-4" />
-                  </ControlButton>
-                </>
-              )}
+          {!isMobile && (
+            <Controls position="top-right" showInteractive={false} className="!m-4">
+              <ControlButton onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)">
+                <Undo className="h-4 w-4" />
+              </ControlButton>
+              <ControlButton onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)">
+                <Redo className="h-4 w-4" />
+              </ControlButton>
             </Controls>
           )}
 
