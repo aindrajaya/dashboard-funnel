@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import ReactFlow, { 
-  Background, 
-  Controls, 
-  MiniMap, 
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
   ReactFlowProvider,
   NodeTypes,
   useReactFlow,
   BackgroundVariant,
   MarkerType,
-  ControlButton
+  ControlButton,
 } from 'reactflow';
 // CSS imported in index.html to support browser-native modules
 
@@ -18,7 +18,18 @@ import { ValidationPanel } from './components/ValidationPanel';
 import { useFunnelLogic } from './hooks/useFunnelLogic';
 import { NodeType } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { Download, Upload, Trash2, LayoutTemplate, Save, Check, Undo, Redo } from 'lucide-react';
+import {
+  Download,
+  Upload,
+  Trash2,
+  LayoutTemplate,
+  Save,
+  Check,
+  Undo,
+  Redo,
+  Menu,
+  X,
+} from 'lucide-react';
 import { SNAP_GRID } from '../../constants';
 
 const nodeTypes: NodeTypes = {
@@ -30,7 +41,38 @@ const FunnelCanvasContent: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { project } = useReactFlow();
   const [justSaved, setJustSaved] = useState(false);
-  
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showToolbar, setShowToolbar] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [showMinimap, setShowMinimap] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isHealthExpanded, setIsHealthExpanded] = useState(false);
+
+  // Detect mobile/tablet screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setShowSidebar(false);
+        setShowToolbar(false);
+        setShowControls(false);
+        setShowMinimap(false);
+        setIsHealthExpanded(false);
+      } else {
+        setShowSidebar(true);
+        setShowToolbar(true);
+        setShowControls(true);
+        setShowMinimap(true);
+        setIsHealthExpanded(true);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const {
     nodes,
     edges,
@@ -48,7 +90,7 @@ const FunnelCanvasContent: React.FC = () => {
     undo,
     redo,
     canUndo,
-    canRedo
+    canRedo,
   } = useFunnelLogic();
 
   // Handle Save Feedback
@@ -62,8 +104,9 @@ const FunnelCanvasContent: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if input is focused
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
-      
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
+        return;
+
       const key = event.key.toUpperCase();
 
       // Undo: Ctrl+Z
@@ -79,17 +122,24 @@ const FunnelCanvasContent: React.FC = () => {
         redo();
         return;
       }
-      
+
       // Node Shortcuts
       const getNodeType = (k: string): NodeType | null => {
-        switch(k) {
-          case 'A': return NodeType.SALES; // 'A' for Add Sales Page
-          case 'S': return NodeType.SALES; // 'S' alias for Sales Page
-          case 'O': return NodeType.ORDER;
-          case 'U': return NodeType.UPSELL;
-          case 'D': return NodeType.DOWNSELL;
-          case 'T': return NodeType.THANK_YOU;
-          default: return null;
+        switch (k) {
+          case 'A':
+            return NodeType.SALES; // 'A' for Add Sales Page
+          case 'S':
+            return NodeType.SALES; // 'S' alias for Sales Page
+          case 'O':
+            return NodeType.ORDER;
+          case 'U':
+            return NodeType.UPSELL;
+          case 'D':
+            return NodeType.DOWNSELL;
+          case 'T':
+            return NodeType.THANK_YOU;
+          default:
+            return null;
         }
       };
 
@@ -141,35 +191,173 @@ const FunnelCanvasContent: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden bg-[#f8f9fa]">
-      
-      {/* 1. Top Center: Main Actions Toolbar */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <div className="bg-white rounded-lg border-2 border-gray-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-1.5 flex items-center gap-1">
-             <Button variant="ghost" size="sm" icon={<Save className="w-4 h-4"/>} onClick={handleSave} title="Save Project">Save</Button>
-             <Button variant="ghost" size="sm" icon={<Upload className="w-4 h-4"/>} onClick={() => fileInputRef.current?.click()} title="Open JSON">Open</Button>
-             <Button variant="ghost" size="sm" icon={<Download className="w-4 h-4"/>} onClick={onExport} title="Export JSON">Export</Button>
-             <Button variant="ghost" size="sm" icon={<LayoutTemplate className="w-4 h-4"/>} onClick={onLoadTemplate} title="Load Template">Template</Button>
-             <div className="w-px h-6 bg-gray-200 mx-1"></div>
-             <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" icon={<Trash2 className="w-4 h-4"/>} onClick={onClear} title="Clear Canvas">Clear</Button>
-        </div>
-      </div>
+    <div className="relative h-full w-full bg-[#f8f9fa]">
+      {/* Mobile: Top Bar with Title and Toggle Buttons */}
+      {isMobile && (
+        <div className="absolute left-4 right-4 top-4 z-50 flex items-center justify-between">
+          {/* Title */}
+          <div className="flex items-center rounded-md border-2 border-gray-900 bg-white px-3 py-2 font-['Architects_Daughter'] text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            Cartpanda
+            {justSaved && <Check className="ml-2 h-4 w-4 text-green-600" />}
+          </div>
 
-      {/* 2. Top Left: Just Title now */}
-      <div className="absolute top-4 left-4 z-50 flex flex-col items-start gap-3">
-        <div className="px-3 py-2 bg-white rounded-md border-2 border-gray-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-['Architects_Daughter'] font-bold text-sm flex items-center">
-            Cartpanda Funnel
-            {justSaved && <Check className="w-4 h-4 ml-2 text-green-600" />}
+          {/* Toggle Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowToolbar(!showToolbar)}
+              className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100"
+              title="Toggle Toolbar"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100"
+              title="Toggle Sidebar"
+            >
+              <LayoutTemplate className="h-5 w-5" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* 1. Top Center: Main Actions Toolbar */}
+      {showToolbar && (
+        <div
+          className={`absolute top-4 z-50 ${isMobile ? 'left-4 right-4' : 'left-1/2 -translate-x-1/2 transform'}`}
+        >
+          <div
+            className={`flex items-center gap-1 rounded-lg border-2 border-gray-900 bg-white p-1.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${isMobile ? 'flex-wrap justify-center' : ''}`}
+          >
+            {isMobile && (
+              <button
+                onClick={() => setShowToolbar(false)}
+                className="absolute -right-2 -top-2 rounded-full border-2 border-gray-900 bg-red-600 p-1 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Save className="h-4 w-4" />}
+              onClick={handleSave}
+              title="Save Project"
+            >
+              {!isMobile && 'Save'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Upload className="h-4 w-4" />}
+              onClick={() => fileInputRef.current?.click()}
+              title="Open JSON"
+            >
+              {!isMobile && 'Open'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Download className="h-4 w-4" />}
+              onClick={onExport}
+              title="Export JSON"
+            >
+              {!isMobile && 'Export'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<LayoutTemplate className="h-4 w-4" />}
+              onClick={() => void onLoadTemplate()}
+              title="Load Template"
+            >
+              {!isMobile && 'Template'}
+            </Button>
+            <div className="mx-1 h-6 w-px bg-gray-200"></div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              icon={<Trash2 className="h-4 w-4" />}
+              onClick={() => void onClear()}
+              title="Clear Canvas"
+            >
+              {!isMobile && 'Clear'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Top Left: Title - Hidden on mobile */}
+      {!isMobile && (
+        <div className="absolute left-4 top-4 z-50 flex flex-col items-start gap-3">
+          <div className="flex items-center rounded-md border-2 border-gray-900 bg-white px-3 py-2 font-['Architects_Daughter'] text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            Cartpanda Funnel
+            {justSaved && <Check className="ml-2 h-4 w-4 text-green-600" />}
+          </div>
+        </div>
+      )}
 
       <input type="file" ref={fileInputRef} onChange={onImport} accept=".json" className="hidden" />
 
       {/* 3. Floating Toolbar (Left Side) - Palette */}
-      <Sidebar />
+      <Sidebar isVisible={showSidebar} />
+
+      {/* Mobile: Floating buttons for Minimap, Undo, Redo */}
+      {isMobile && (
+        <div
+          className="absolute right-4 z-50 flex flex-col gap-2 transition-all duration-300"
+          style={{ bottom: isHealthExpanded ? 'calc(4rem + 180px)' : 'calc(4rem + 60px)' }}
+        >
+          <button
+            onClick={() => setShowControls(!showControls)}
+            className={`rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100 ${showControls ? 'bg-blue-100' : ''}`}
+            title="Toggle Zoom Controls"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => setShowMinimap(!showMinimap)}
+            className={`rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100 ${showMinimap ? 'bg-blue-100' : ''}`}
+            title="Toggle Minimap"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={undo}
+            disabled={!canUndo}
+            className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Undo"
+          >
+            <Undo className="h-5 w-5" />
+          </button>
+          <button
+            onClick={redo}
+            disabled={!canRedo}
+            className="rounded-lg border-2 border-gray-900 bg-white p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Redo"
+          >
+            <Redo className="h-5 w-5" />
+          </button>
+        </div>
+      )}
 
       {/* Main Workspace */}
-      <div className="flex-1 relative w-full h-full" ref={reactFlowWrapper}>
+      <div className="absolute inset-0" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -181,62 +369,84 @@ const FunnelCanvasContent: React.FC = () => {
           nodeTypes={nodeTypes}
           snapToGrid={true}
           snapGrid={SNAP_GRID}
-          deleteKeyCode={['Backspace', 'Delete']} 
+          deleteKeyCode={['Backspace', 'Delete']}
           fitView
           className="bg-[#f8f9fa]"
-          defaultEdgeOptions={{ 
-            type: 'smoothstep', 
+          defaultEdgeOptions={{
+            type: 'smoothstep',
             style: { strokeWidth: 2, stroke: '#1a1a1a', strokeDasharray: '5,5' },
             animated: false,
-            markerEnd: { 
-              type: MarkerType.ArrowClosed, 
-              width: 20, 
-              height: 20, 
-              color: '#1a1a1a' 
-            }
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 20,
+              height: 20,
+              color: '#1a1a1a',
+            },
           }}
           connectionLineStyle={{ stroke: '#1a1a1a', strokeWidth: 2, strokeDasharray: '5,5' }}
         >
           <Background color="#ccc" gap={20} variant={BackgroundVariant.Dots} size={2} />
-          
-          <Controls 
-            position="top-right" 
-            showInteractive={false} 
-            className="!m-4"
-          >
-             <ControlButton onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)">
-                <Undo className="w-4 h-4" />
-             </ControlButton>
-             <ControlButton onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)">
-                <Redo className="w-4 h-4" />
-             </ControlButton>
-          </Controls>
-          
-          <MiniMap 
-            className="!m-4" 
-            position="bottom-right"
-            zoomable
-            pannable
-            nodeStrokeColor="#1a1a1a"
-            nodeColor={(n) => {
-                const type = n.data.type as NodeType;
-                // Simple pastel map
-                switch(type) {
-                    case NodeType.SALES: return '#a5d8ff';
-                    case NodeType.ORDER: return '#bac8ff';
-                    case NodeType.UPSELL: return '#b2f2bb';
-                    case NodeType.DOWNSELL: return '#ffc9c9';
-                    case NodeType.THANK_YOU: return '#e9ecef';
-                    default: return '#fff';
-                }
-            }}
-            nodeBorderRadius={4}
-            maskColor="rgba(240, 240, 240, 0.6)"
-          />
-        </ReactFlow>
 
-        <ValidationPanel issues={validationIssues} />
+          {showControls && (
+            <Controls
+              position="top-right"
+              showInteractive={false}
+              className={
+                isMobile
+                  ? `!right-4 !top-auto !m-0 transition-all duration-300 ${isHealthExpanded ? '!bottom-[calc(4rem+370px)]' : '!bottom-[calc(4rem+250px)]'}`
+                  : '!m-4'
+              }
+            >
+              {!isMobile && (
+                <>
+                  <ControlButton onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)">
+                    <Undo className="h-4 w-4" />
+                  </ControlButton>
+                  <ControlButton onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)">
+                    <Redo className="h-4 w-4" />
+                  </ControlButton>
+                </>
+              )}
+            </Controls>
+          )}
+
+          {showMinimap && (
+            <MiniMap
+              className={
+                isMobile
+                  ? `!left-1/2 !m-0 !h-[150px] !w-[200px] !-translate-x-1/2 transition-all duration-300 ${isHealthExpanded ? '!bottom-[240px]' : '!bottom-[120px]'}`
+                  : '!m-4'
+              }
+              position="bottom-right"
+              zoomable
+              pannable
+              nodeStrokeColor="#1a1a1a"
+              nodeColor={(n) => {
+                const type = (n.data as { type: NodeType }).type;
+                // Simple pastel map
+                switch (type) {
+                  case NodeType.SALES:
+                    return '#a5d8ff';
+                  case NodeType.ORDER:
+                    return '#bac8ff';
+                  case NodeType.UPSELL:
+                    return '#b2f2bb';
+                  case NodeType.DOWNSELL:
+                    return '#ffc9c9';
+                  case NodeType.THANK_YOU:
+                    return '#e9ecef';
+                  default:
+                    return '#fff';
+                }
+              }}
+              nodeBorderRadius={4}
+              maskColor="rgba(240, 240, 240, 0.6)"
+            />
+          )}
+        </ReactFlow>
       </div>
+
+      <ValidationPanel issues={validationIssues} onExpandChange={setIsHealthExpanded} />
     </div>
   );
 };
