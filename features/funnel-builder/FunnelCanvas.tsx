@@ -169,6 +169,19 @@ const FunnelCanvasContent: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [addNode, deleteSelected, handleSave, project, undo, redo]);
 
+  // Mobile: Add node at center when tapping sidebar
+  const handleMobileAddNode = useCallback(
+    (nodeType: NodeType) => {
+      if (reactFlowWrapper.current) {
+        const { width, height } = reactFlowWrapper.current.getBoundingClientRect();
+        // Add node at center of visible viewport
+        const position = project({ x: width / 2, y: height / 2 });
+        addNode(nodeType, position);
+      }
+    },
+    [addNode, project]
+  );
+
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -301,7 +314,7 @@ const FunnelCanvasContent: React.FC = () => {
       <input type="file" ref={fileInputRef} onChange={onImport} accept=".json" className="hidden" />
 
       {/* 3. Floating Toolbar (Left Side) - Palette */}
-      <Sidebar isVisible={showSidebar} />
+      <Sidebar isVisible={showSidebar} onAddNode={handleMobileAddNode} isMobile={isMobile} />
 
       {/* Mobile: Floating buttons for Minimap, Undo, Redo */}
       {isMobile && (
@@ -371,6 +384,9 @@ const FunnelCanvasContent: React.FC = () => {
           snapGrid={SNAP_GRID}
           deleteKeyCode={['Backspace', 'Delete']}
           fitView
+          panOnDrag={true}
+          zoomOnPinch={true}
+          panOnScroll={false}
           className="bg-[#f8f9fa]"
           defaultEdgeOptions={{
             type: 'smoothstep',
