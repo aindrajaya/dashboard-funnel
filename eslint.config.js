@@ -10,7 +10,7 @@ import react from 'eslint-plugin-react'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage', 'storybook-static', '.storybook'] },
+  { ignores: ['dist', 'node_modules', 'coverage', 'storybook-static', '.storybook', '**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', 'src/test/**'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
     files: ['**/*.{ts,tsx}'],
