@@ -60,12 +60,13 @@ src/
 
 ### Design System
 
-The application uses a **sketchy, hand-drawn aesthetic** that combines professionalism with approachability:
+The application embraces an **Excalidraw-inspired aesthetic** that mimics digital whiteboarding with handwritten elements:
 
-- **Tailwind CSS**: Utility-first styling with custom design tokens
-- **Custom Theme**: Architects Daughter font for a friendly, creative feel
-- **Consistent Borders**: 2px solid borders with 3px shadows for depth
-- **Color Palette**: Sky blue accents (#0ea5e9) with neutral grays and semantic colors
+- **Handwritten Typography**: Kalam and Architects Daughter fonts for authentic sketch feel
+- **Rough Sketched Elements**: Organic, imperfect lines that feel hand-drawn
+- **Whiteboard Aesthetic**: Clean backgrounds with selective color highlights
+- **Collaborative Feel**: Visual language that encourages creativity and ideation
+- **Minimal Color Palette**: Primarily grayscale with strategic blue accents for emphasis
 
 ### Toast Notification System
 
@@ -86,6 +87,51 @@ const confirmed = await showToast.confirm('Are you sure you want to clear the ca
 - Consistent visual language
 - Accessible with ARIA live regions
 - Smooth animations and auto-dismiss
+
+### Excalidraw-Style UX Patterns
+
+#### Handwritten Interaction Cues
+
+- **Sketch-Style Buttons**: Rounded rectangles with hand-drawn borders
+- **Organic Node Shapes**: Slightly irregular circles and rectangles
+- **Handwritten Labels**: Casual, friendly text that feels personally crafted
+- **Dashed Guidelines**: Dotted connections suggesting work-in-progress
+
+#### Whiteboard Metaphors
+
+- **Canvas Thinking**: Unlimited space for creative exploration
+- **Sticky Note Nodes**: Each funnel step feels like a moveable note
+- **Marker Strokes**: Connections drawn with natural, flowing lines
+- **Eraser Interactions**: Delete gestures feel like erasing sketches
+
+#### Collaborative Visual Language
+
+```typescript
+// UI elements that reinforce the sketching metaphor
+const ExcalidrawButton = {
+  border: '2px solid #1e1e1e',
+  borderRadius: '8px',
+  background: '#ffffff',
+  fontFamily: 'Kalam, cursive', // Handwritten feel
+  transform: 'rotate(-0.5deg)',   // Slight tilt for organic feel
+};
+
+// Node styling with sketch aesthetic
+const SketchNode = {
+  border: '3px solid #1e1e1e',
+  borderRadius: '12px',
+  background: '#fafafa',
+  boxShadow: '3px 3px 0px rgba(30, 30, 30, 0.1)', // Hand-drawn shadow
+  transform: `rotate(${Math.random() * 2 - 1}deg)`, // Random slight tilt
+};
+```
+
+#### Micro-Interactions
+
+- **Hover Effects**: Subtle "lift" like picking up a sketch element
+- **Selection State**: Rough, hand-drawn selection outlines
+- **Drag Feedback**: Elements slightly rotate as if being moved by hand
+- **Connection Drawing**: Animated line drawing from point to point
 
 ### Responsive Design
 
@@ -425,23 +471,38 @@ The application is fully accessible via keyboard:
 
 ### Visual Design
 
-- **Sketchy Aesthetic**: Hand-drawn feel with Architects Daughter font
-- **Consistent Borders**: 2px solid borders with 3px shadows throughout
-- **Sky Blue Accents**: Primary color (#0ea5e9) for interactive elements
-- **Semantic Colors**: Red for errors, green for success, blue for info
-- **Responsive Layout**: Fluid design that adapts to any screen size
-- **Visual Feedback**: Clear states for hover, focus, active, and disabled
-- **Smooth Transitions**: 300ms animations for state changes
-- **Consistent Iconography**: Lucide React icons throughout
+- **Excalidraw Aesthetic**: Hand-sketched elements with organic, imperfect lines
+- **Rough Borders**: Variable-width strokes (1-3px) with subtle hand-drawn irregularities
+- **Whiteboard Background**: Clean #ffffff with subtle texture hints
+- **Selective Color**: Minimal palette with blue (#0ea5e9) for key interactions
+- **Handwritten Typography**: Mixed font weights creating natural sketch hierarchy
+- **Organic Shapes**: Rounded corners with slight asymmetry for authentic feel
+- **Sketch-Style Icons**: Custom-drawn icons matching the handwritten theme
+- **Gentle Shadows**: Soft, offset shadows mimicking pencil sketches on paper
 
 ### Color Palette
 
 ```css
-/* Primary Colors */
---primary: #0ea5e9 (Sky Blue) --primary-hover: #0284c7 --primary-active: #0369a1
-  /* Semantic Colors */ --success: #10b981 (Green) --error: #ef4444 (Red) --warning: #f59e0b (Amber)
-  --info: #3b82f6 (Blue) /* Neutrals */ --background: #ffffff --surface: #f9fafb --border: #d1d5db
-  --text: #111827 --text-secondary: #6b7280;
+/* Excalidraw-Inspired Palette */
+--primary: #0ea5e9      /* Signature Blue - for key actions */
+--primary-hover: #0284c7 /* Darker blue on interaction */
+--primary-active: #0369a1
+
+/* Sketch Colors */
+--sketch-dark: #1e1e1e   /* Primary drawing color */
+--sketch-medium: #343a40 /* Secondary text */
+--sketch-light: #6c757d  /* Tertiary text */
+--sketch-faint: #adb5bd  /* Subtle elements */
+
+/* Semantic Highlights */
+--error: #e03131         /* Red for validation */
+--success: #51cf66       /* Green for confirmation */
+--warning: #ff922b       /* Orange for caution */
+
+/* Whiteboard Base */
+--background: #ffffff    /* Clean whiteboard */
+--surface: #fafafa      /* Subtle elevation */
+--border: #e9ecef       /* Soft boundaries */
 ```
 
 ## 🔧 Development
