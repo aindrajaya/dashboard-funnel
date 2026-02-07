@@ -12,20 +12,20 @@ describe('Button Component', () => {
   it('applies primary variant class by default', () => {
     render(<Button>Primary</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-blue-500');
+    expect(button).toHaveClass('bg-[#a5d8ff]');
   });
 
   it('applies secondary variant class when specified', () => {
     render(<Button variant="secondary">Secondary</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-gray-500');
+    expect(button).toHaveClass('bg-white');
   });
 
   it('disables button when disabled prop is true', () => {
     render(<Button disabled>Disabled</Button>);
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    expect(button).toHaveClass('opacity-50');
+    expect(button).toHaveClass('disabled:opacity-50');
   });
 
   it('handles click events', async () => {

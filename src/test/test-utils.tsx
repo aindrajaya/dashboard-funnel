@@ -2,6 +2,7 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactFlowProvider } from 'reactflow';
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -23,7 +24,11 @@ interface AllTheProvidersProps {
 export function AllTheProviders({ children }: AllTheProvidersProps) {
   const testQueryClient = createTestQueryClient();
 
-  return <QueryClientProvider client={testQueryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={testQueryClient}>
+      <ReactFlowProvider>{children}</ReactFlowProvider>
+    </QueryClientProvider>
+  );
 }
 
 export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
